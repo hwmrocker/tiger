@@ -12,7 +12,7 @@ function ai.init(map, money)
     dist, path = dijkstra(start, getIdx(4,3))
     print(dist)
     print(t2s(path))
-    print("hoho")
+    print("done init")
 end
 
 function printNodeList( path )
@@ -24,6 +24,11 @@ end
 
 function getIdx( x, y )
     return x * 1000 + y
+end
+
+function ai.newPassenger( name, x, y, destX, destY, vipTime )
+    -- body
+    buyTrain(1,1, 'E')
 end
 
 function ai.foundPassengers( train, passengers )
@@ -53,7 +58,6 @@ function distance( train, passenger )
 end
 
 function buildGraph( map )
-    print ("haha")
     local idx = 1
     local powerMap = {}
     local G = {}
@@ -61,7 +65,6 @@ function buildGraph( map )
     for j = 1, map.height do
         for i = 1, map.width do
             if map[i][j] == "C" then
-                --print ("CC")
                 local num_neighbours = 0
                 local pos = getIdx(i, j)
                 local node = {}
@@ -74,9 +77,7 @@ function buildGraph( map )
                     end
                 end
                 G[pos]=node
-                --print ("" .. pos .. "> " .. num_neighbours)
             else
-                --print(map[i][j] )
             end
         end
     end
@@ -100,7 +101,6 @@ function getNextIdx( map, x, y, direction )
     end
 
     if x <= 0 or y <= 0 or x > map.width or y > map.height then
-        --print("no.. " .. x .. "," .. y .. "|" .. map.width .. "," .. map.height)
         return nil
     end
 
@@ -146,7 +146,6 @@ end
 
 
 function get_neighbours( node )
-    print("gn ".. node.idx)
     local node_lookup = G[node.idx]
     local last_n = nil
     local inserts = 0
@@ -197,11 +196,6 @@ function dijkstra(n_start, goal_idx)
     distance[n_start] = 0
     path[n_start] = n_start
     visited[n_start] = true
-    print(t2s(n_start))
-    print(">>" .. node2Str(n_start))
-    print("candidates ".. t2s(candidates))
-    --printNodeList(candidates)
-    print(#candidates .. " candidates left")
     -- Greedy loop
     while #candidates >= 0 do
         -- Select closest neighbor, mark as visisted
@@ -209,24 +203,18 @@ function dijkstra(n_start, goal_idx)
         local minn = candidates[1]
         local mind = distance[minn]
         local mindx = 1
-        print("minn ".. t2s(minn))
         for _, node in pairs(candidates) do
             
-            print("n ".. t2s(node))
             if distance[node] < mind then
                 mind = distance[node]
                 minn = node
                 mindx = _
-                print("minn ".. t2s(minn))
             end
         end
-        print("minn ".. node2Str(minn))
         table.remove(candidates,mindx)
         v = minn
-        print(v.idx .." " .. goal_idx)
 
         if v.idx == goal_idx then
-            print("juhu we found a path")
             local c = v
             local pathtmp = {c}
             while c ~= n_start do
@@ -235,10 +223,7 @@ function dijkstra(n_start, goal_idx)
             end
             return distance[v] + 1, pathtmp
         end
-        print (":(")
-        --print("remove", v.tag)
         for _,w in pairs(get_neighbours(v)) do
-            print("new neighbour "..w.idx)
             if not visited[w] then 
                 table.insert(candidates, w) 
                 distance[w] = distance[v] + 1
@@ -251,7 +236,6 @@ function dijkstra(n_start, goal_idx)
         for _,w in pairs(candidates) do
             if are_neighbours(v,w) then
                 local d = distance[v] + 1
-                --print("edge", v.tag, w.tag, distance[w], d)
                 if  d < distance[w] then
                     distance[w] = d
                     path[w] = v
@@ -259,7 +243,6 @@ function dijkstra(n_start, goal_idx)
             end
         end
     end
-    print ("bye")
     return distance, path
 end
 
