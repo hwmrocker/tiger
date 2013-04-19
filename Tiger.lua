@@ -6,6 +6,7 @@ function ai.init(map, money)
 
     -- build Graph
     G = buildGraph(map)
+    Passengers = {}
     print(map[3][4])
     local start = {idx=getIdx(1,1), d="E"}
     print("start " .. node2Str(start))
@@ -26,9 +27,94 @@ function getIdx( x, y )
     return x * 1000 + y
 end
 
+function getPositionFromIndex( idx )
+    local x = math.floor(idx / 1000)
+    local y = idx - math.floor(idx/1000)*1000
+    return x,y
+    -- body
+end
+
+function getDirectionFromIndex( from, to )
+    local fromX, fromY = getPositionFromIndex(from)
+    local toX, toY = getPositionFromIndex(to)
+    print("ll"..fromX.."." .. fromY .."|".. toX ..".".. toY)
+    return getDirection(fromX, fromY, toX, toY)
+end
+
+function getDirection( fromX, fromY, toX, toY )
+    if fromX > toX then
+        print("west")
+        return "W"
+    elseif fromX < toX then
+        print("east")
+        return "E"
+    elseif fromY > toY then
+        print("north")
+        return "N"
+    elseif fromY < toY then
+        print("south")
+        return "S"
+    end
+end
+
+function getStartNodeFromTrain( train )
+    local node = {}
+    node.idx = getIdx(train.nextX, train.nextY)
+    node.d = getDirection(train.nextX, train.nextY, train.x, train.y)
+    return node
+end
+
+function ai.chooseDirection(train, possibleDirs)
+    local start_n = getStartNodeFromTrain(train)
+    if train.passenger then
+        local goal_idx = getIdx(train.passenger.destX, train.passenger.destY)
+        local dist, path = dijkstra(start_n, goal_idx)
+        --print(path[2].idx)
+        return getDirectionFromIndex(start_n.idx, path[2].idx)
+        --print(">>" .. next_step)
+        -- get shortes distance to direction
+    else
+        -- get shortest distance to next player
+        --if #Passengers > 0 then
+            local passenger = Passengers[1]
+            local min_goal_idx = getIdx(passenger.x, passenger.y)
+            --print(t2s(start_n)..".."..min_goal_idx)
+            local min_dist, min_path = dijkstra(start_n, min_goal_idx)
+            print(min_dist .. "|" .. t2s(min_path))
+            --for _, passenger in Passengers do
+            --    local goal_idx = getIdx(passenger.x, passenger.y)
+            --    local dist, path = dijkstra(start_n, goal_idx)
+            --    if dist < min_dist then
+            --        min_dist = dist
+            --        min_path = path
+            --        min_goal_idx = goal_idx
+            --    end
+            --end
+            -- tODO register this passenger, and ignore it for the other trains
+            return getDirectionFromIndex(start_n.idx, min_path[2].idx)
+            --print("boo")
+        --end
+    end
+    --print(train.x .. ":" .. train.y .. "|" ..train.nextX .. ":" .. train.nextY)
+end
+
 function ai.newPassenger( name, x, y, destX, destY, vipTime )
     -- body
-    buyTrain(1,1, 'E')
+    local passenger = {}
+    passenger.name = name
+    passenger.x = x
+    passenger.y = y
+    passenger.destX = destX
+    passenger.destY = destY
+    passenger.vipTime = vipTime
+    passenger.assigned = nil
+    table.insert(Passengers, passenger)
+
+    buyTrain(x,y)
+end
+
+function ai.passengerBoarded(train, passenger)      -- called when another player's train picks up a passenger
+
 end
 
 function ai.foundPassengers( train, passengers )
